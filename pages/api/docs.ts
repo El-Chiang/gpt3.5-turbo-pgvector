@@ -100,12 +100,12 @@ const handler = async (req: Request): Promise<Response> => {
 
   // console.log("contextText: ", contextText);
 
-  const systemContent = `You are a helpful assistant. When given CONTEXT you answer questions using only that information,
-  and you always format your output in markdown. You include code snippets if relevant. If you are unsure and the answer
-  is not explicitly written in the CONTEXT provided, you say
-  "Sorry, I don't know how to help with that."  If the CONTEXT includes 
-  source URLs include them under a SOURCES heading at the end of your response. Always include all of the relevant source urls 
-  from the CONTEXT, but never list a URL more than once (ignore trailing forward slashes when comparing for uniqueness). Never include URLs that are not in the CONTEXT sections. Never make up URLs`;
+  const systemContent = `你是一个有用的助手。
+  在给定上下文的情况下，你尽量使用那些信息回答问题，并且总是用 markdown 格式输出。
+  如果相关，你会包括代码片段。
+  如果你不确定且答案没有明确写在提供的上下文中，你会说“抱歉，这个问题没有明确解答。”，并给出一些相关信息。 
+  如果上下文包括来源网址，在回答的结尾处包含一个“来源”标题，并始终包括所有相关的来源网址，但不要重复列出网址（比较时忽略尾部的斜杠）。
+  不要包含不在上下文部分中的网址。不要编造网址。`;
 
   const userContent = `CONTEXT:
   Next.js is a React framework for creating production-ready web applications. It provides a variety of methods for fetching data, a built-in router, and a Next.js Compiler for transforming and minifying JavaScript code. It also includes a built-in Image Component and Automatic Image Optimization for resizing, optimizing, and serving images in modern formats.
