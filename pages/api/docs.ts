@@ -27,8 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const { question } = (await req.json()) as {
+  const { question, temperature } = (await req.json()) as {
     question?: string;
+    temperature?: number;
   };
 
   if (!question) {
@@ -153,13 +154,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
   ];
 
-
-  console.log("messages: ", messages);
-
   const payload: OpenAIStreamPayload = {
-    model: "gpt-3.5-turbo-0301",
+    model: "gpt-3.5-turbo",
     messages: messages,
-    temperature: 0,
+    temperature: temperature || 0.5,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,

@@ -2,14 +2,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { NextPage } from "next";
 import { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import LoadingDots from "@/components/LoadingDots";
 import ResizablePanel from "@/components/ResizablePanel";
 import MetaTags from "@/components/MetaTags";
 import { ReactNode } from "react";
 import { PageMeta } from "../types";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
-
 
 interface Props {
   children: ReactNode;
@@ -19,6 +18,7 @@ interface Props {
 const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
   const [loading, setLoading] = useState(false);
   const [userQ, setUserQ] = useState("");
+  const [userTemperature, setUserTemperature] = useState(0.5);
   const [answer, setAanswer] = useState<String>("");
 
   console.log("Streamed response: ", answer);
@@ -39,7 +39,8 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        question
+        question,
+        temperature: userTemperature
       })
     });
     console.log("Edge function returned.");
@@ -68,7 +69,6 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
     setLoading(false);
   };
 
-
   return (
     <>
       <MetaTags
@@ -78,13 +78,31 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
         url=""
       />
       <div className="flex flex-col items-center justify-center min-h-screen py-2 mx-auto">
-   
-
         <main className="flex flex-col items-center justify-center flex-1 w-full min-h-screen px-4 py-2 mx-auto mt-12 text-center sm:mt-20">
           <h1 className="max-w-xl text-2xl font-bold sm:text-4xl">
-            Ask me anything<sup>*</sup>  about web development!
+            Ask me anything<sup>*</sup> about web development!
           </h1>
           <div className="w-full max-w-xl">
+            <div className="bg-opacity p-8 rounded flex items-center">
+              <label
+                htmlFor="temperature-input"
+                className="text-sm font-medium mb-2 mr-4"
+              >
+                Temperature(越大越倾向于胡说八道，越小回答越准确):{" "}
+              </label>
+              <input
+                type="number"
+                id="temperature-input"
+                className="block bg-black w-20 rounded py-2 px-3 focus:border-indigo-500 focus:outline-none"
+                value={userTemperature}
+                min={0}
+                max={1}
+                step={0.1}
+                onChange={(e) =>
+                  setUserTemperature(parseFloat(e?.target?.value))
+                }
+              />
+            </div>
             <textarea
               value={userQ}
               onChange={(e) => setUserQ(e.target.value)}
@@ -109,21 +127,21 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
                 <LoadingDots color="white" style="xl" />
               </button>
             )}
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{ duration: 2000 }}
-          />
-          <ResizablePanel>
-            <AnimatePresence mode="wait">
-              <motion.div className="my-10 space-y-10">
-                {answer && (
-                  <>
-                    <div>
-                      <h2 className="mx-auto text-3xl font-bold sm:text-4xl">
-                        Here is your answer:{" "}
-                      </h2>
-                    </div>
+            <Toaster
+              position="top-center"
+              reverseOrder={false}
+              toastOptions={{ duration: 2000 }}
+            />
+            <ResizablePanel>
+              <AnimatePresence mode="wait">
+                <motion.div className="my-10 space-y-10">
+                  {answer && (
+                    <>
+                      <div>
+                        <h2 className="mx-auto text-3xl font-bold sm:text-4xl">
+                          Here is your answer:{" "}
+                        </h2>
+                      </div>
                       {answer.split("SOURCES:").map((splitanswer, index) => {
                         return (
                           <div
@@ -143,8 +161,7 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
                             key={index}
                           >
                             {index === 0 ? (
-                            <MarkdownRenderer content={splitanswer.trim()} />
-                            
+                              <MarkdownRenderer content={splitanswer.trim()} />
                             ) : (
                               <>
                                 <p>SOURCES:</p>
@@ -156,12 +173,12 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
                                     .map((url) =>
                                       url.includes("http") ? (
                                         <li key={uuidv4()}>
-                                        <a
+                                          <a
                                             className="underline text-accent"
-                                            target="_blank" 
-                                            href={url.replace(/^-+/g, '')} // Remove leading hyphens
-                                            >
-                                            {url.replace(/^-+/g, '')}
+                                            target="_blank"
+                                            href={url.replace(/^-+/g, "")} // Remove leading hyphens
+                                          >
+                                            {url.replace(/^-+/g, "")}
                                           </a>
                                         </li>
                                       ) : (
@@ -181,23 +198,45 @@ const DocsPage: NextPage<Props> = ({ children, meta: pageMeta }: Props) => {
                           </div>
                         );
                       })}
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </ResizablePanel>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </ResizablePanel>
 
-          <div className="max-w-xl text-xs">
-            <p><sup>*</sup>Actually, I'm currently only trained on the following documentation:</p>
-            <ul>
-              <li><a target="_blank" href="">https://beta.reactjs.org/</a></li>
-              <li><a target="_blank" href="">https://supabase.com/docs</a></li>
-              <li><a target="_blank" href="">https://tailwindcss.com/docs</a></li>
-              <li><a target="_blank" href="">https://nextjs.org/docs</a></li>
-              <li><a target="_blank" href="">https://beta.nextjs.org/docs</a></li>
-            </ul>
+            <div className="max-w-xl text-xs">
+              <p>
+                <sup>*</sup>Actually, I'm currently only trained on the
+                following documentation:
+              </p>
+              <ul>
+                <li>
+                  <a target="_blank" href="">
+                    https://beta.reactjs.org/
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="">
+                    https://supabase.com/docs
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="">
+                    https://tailwindcss.com/docs
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="">
+                    https://nextjs.org/docs
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="">
+                    https://beta.nextjs.org/docs
+                  </a>
+                </li>
+              </ul>
             </div>
-
           </div>
         </main>
       </div>
